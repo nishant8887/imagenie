@@ -6,3 +6,8 @@ dbsslmode: disable
 dbpassword: postgres
 workers: 3
 tmppath: /tmp
+awsconfig:
+  bucket: imagenie-images
+  accesskey: AKIAIFOPUIT4OY7Z4JEQ
+  secret: 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
+  region: ap-south-1

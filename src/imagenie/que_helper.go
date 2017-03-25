@@ -16,8 +16,8 @@ import (
 const (
 	JOB_RETRIES = 3
 
-	BUCKET_ORIGINAL = "image_original"
-	BUCKET_RESIZED  = "image_resized"
+	FOLDER_ORIGINAL = "original"
+	FOLDER_RESIZED  = "resized"
 )
 
 type QueHelper struct {
@@ -67,9 +67,14 @@ type ImageArgs struct {
 	Path      string
 }
 
-func (self *QueHelper) UploadImage(image_path string, bucket string) error {
+func (self *QueHelper) UploadImage(image_path string, folder string) error {
 	// Check for already uploaded image
-	return nil
+	// Add some retries
+	err := self.listener.awsHelper.UploadFile(image_path, folder)
+	if err != nil {
+		log.Error("Error in uploading image: ", err)
+	}
+	return err
 }
 
 func (self *QueHelper) ResizeImage(file_name, resized_file_name string) error {
@@ -115,6 +120,8 @@ func (self *QueHelper) ProcessImage(j *que.Job) error {
 	if j.ErrorCount >= JOB_RETRIES {
 
 		// Add code to delete uploaded files if any
+		self.listener.awsHelper.DeleteFile(file_name, FOLDER_ORIGINAL)
+		self.listener.awsHelper.DeleteFile(resized_file_name, FOLDER_RESIZED)
 
 		utils.DeleteFile(file_name)
 		utils.DeleteFile(resized_file_name)
@@ -125,7 +132,7 @@ func (self *QueHelper) ProcessImage(j *que.Job) error {
 
 	x := make(chan bool, 2)
 	go func() {
-		err := self.UploadImage(file_name, BUCKET_ORIGINAL)
+		err := self.UploadImage(file_name, FOLDER_ORIGINAL)
 		if err != nil {
 			x <- false
 			return
@@ -140,7 +147,7 @@ func (self *QueHelper) ProcessImage(j *que.Job) error {
 			return
 		}
 
-		err = self.UploadImage(resized_file_name, BUCKET_RESIZED)
+		err = self.UploadImage(resized_file_name, FOLDER_RESIZED)
 		if err != nil {
 			x <- false
 			return
@@ -156,7 +163,7 @@ func (self *QueHelper) ProcessImage(j *que.Job) error {
 	}
 
 	// Mark the image as done
-	err := self.listener.db.Where("file_id = ?", args.ImageId).Update("done", true).Error
+	err := self.listener.db.Table("images").Where("file_id = ?", args.ImageId).Update("done", true).Error
 	if err != nil {
 		log.Error("Error in updating status of image: ", err)
 		return errors.New("error_in_updating_image_status")

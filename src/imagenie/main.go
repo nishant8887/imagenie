@@ -27,11 +27,13 @@ type ServiceSettings struct {
 	DbPassword string
 	Workers    int
 	TmpPath    string
+	AwsConfig  AwsConfig
 }
 
 type ImagenieListener struct {
 	db        *gorm.DB
 	queHelper QueHelper
+	awsHelper AwsHelper
 	settings  ServiceSettings
 }
 
@@ -71,6 +73,12 @@ func (self *ImagenieListener) Start() error {
 	}
 
 	defer self.queHelper.Shutdown()
+
+	self.awsHelper = AwsHelper{}
+	err = self.awsHelper.Init(self.settings.AwsConfig)
+	if err != nil {
+		return err
+	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/home", self.Home)
