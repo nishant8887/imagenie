@@ -1,0 +1,73 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "ZKxETlJdB2XubMrZnXB0FQimVA8=",
+			"path": "github.com/Sirupsen/logrus",
+			"revision": "10f801ebc38b33738c9d17d50860f484a0988ff5",
+			"revisionTime": "2017-03-17T14:32:14Z"
+		},
+		{
+			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
+			"path": "github.com/gorilla/context",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"revisionTime": "2016-08-17T18:46:32Z"
+		},
+		{
+			"checksumSHA1": "zmCk+lgIeiOf0Ng9aFP9aFy8ksE=",
+			"path": "github.com/gorilla/mux",
+			"revision": "599cba5e7b6137d46ddf58fb1765f5d928e69604",
+			"revisionTime": "2017-02-28T22:43:54Z"
+		},
+		{
+			"checksumSHA1": "Jo1cMlZwUmSlt4SB2c/aurzXCTI=",
+			"path": "github.com/jinzhu/gorm",
+			"revision": "66d5b42ee9d071458e9a430efeb135b29e51e896",
+			"revisionTime": "2017-03-24T01:28:06Z"
+		},
+		{
+			"checksumSHA1": "QmQW8snORAputB7/1jFXpsOZa8A=",
+			"path": "github.com/jinzhu/gorm/dialects/postgres",
+			"revision": "66d5b42ee9d071458e9a430efeb135b29e51e896",
+			"revisionTime": "2017-03-24T01:28:06Z"
+		},
+		{
+			"checksumSHA1": "VIp1lZm6joWhlNdwhady8u//qRw=",
+			"path": "github.com/jinzhu/inflection",
+			"revision": "1c35d901db3da928c72a72d8458480cc9ade058f",
+			"revisionTime": "2017-01-02T12:52:26Z"
+		},
+		{
+			"checksumSHA1": "5f/QhGjPgETWzP3aS9WdGFqoT1I=",
+			"path": "github.com/lib/pq",
+			"revision": "472a0745531a17dbac346e828b4c60e73ddff30c",
+			"revisionTime": "2017-03-13T20:04:23Z"
+		},
+		{
+			"checksumSHA1": "jaCQF1par6Jl8g+V2Cgp0n/0wSc=",
+			"path": "github.com/lib/pq/hstore",
+			"revision": "472a0745531a17dbac346e828b4c60e73ddff30c",
+			"revisionTime": "2017-03-13T20:04:23Z"
+		},
+		{
+			"checksumSHA1": "Gk3jTNQ5uGDUE0WMJFWcYz9PMps=",
+			"path": "github.com/lib/pq/oid",
+			"revision": "472a0745531a17dbac346e828b4c60e73ddff30c",
+			"revisionTime": "2017-03-13T20:04:23Z"
+		},
+		{
+			"checksumSHA1": "92lp1kcQB5hfAhtiXbwWt1ASy9U=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "8fd966b47dbdd4faa03de0d06e3d733baeb9a1a9",
+			"revisionTime": "2016-04-10T19:02:41Z"
+		},
+		{
+			"checksumSHA1": "0KwOlQV1dNUh9X8t+5s7nX5bqfk=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "a3f3340b5840cee44f372bddb5880fcbc419b46a",
+			"revisionTime": "2017-02-08T14:18:51Z"
+		}
+	],
+	"rootPath": "imagenie"
+}

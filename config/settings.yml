@@ -1,0 +1,6 @@
+port: 8000
+dbhost: localhost
+dbuser: postgres
+dbname: imagenie
+dbsslmode: disable
+dbpassword: postgres
