@@ -4,3 +4,4 @@ dbuser: postgres
 dbname: imagenie
 dbsslmode: disable
 dbpassword: postgres
+workers: 3

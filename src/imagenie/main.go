@@ -8,6 +8,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/satori/go.uuid"
 	"gopkg.in/yaml.v2"
+	"imagenie/models"
+	"imagenie/quehelper"
 	"imagenie/utils"
 	"io"
 	"io/ioutil"
@@ -23,11 +25,13 @@ type ServiceSettings struct {
 	DbName     string
 	DbSslMode  string
 	DbPassword string
+	Workers    int
 }
 
 type ImagenieListener struct {
-	db       *gorm.DB
-	settings ServiceSettings
+	db        *gorm.DB
+	queHelper quehelper.QueHelper
+	settings  ServiceSettings
 }
 
 func (self *ImagenieListener) Start() error {
@@ -56,6 +60,16 @@ func (self *ImagenieListener) Start() error {
 	}
 
 	defer self.db.Close()
+
+	models.MigrateAll(self.db)
+
+	self.queHelper = quehelper.QueHelper{}
+	err = self.queHelper.Init(self.settings.DbHost, self.settings.DbUser, self.settings.DbName, self.settings.DbPassword, self.settings.Workers)
+	if err != nil {
+		return err
+	}
+
+	defer self.queHelper.Shutdown()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/home", self.Home)
