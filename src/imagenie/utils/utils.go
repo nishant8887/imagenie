@@ -25,3 +25,15 @@ func (self *noDirFileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 func NoDirFileServer(basePath string) http.Handler {
 	return &noDirFileHandler{basePath, http.FileServer(http.Dir(basePath))}
 }
+
+func DeleteFile(file_name string) error {
+	if _, err := os.Stat(file_name); err == nil {
+		log.Info("Deleting file: ", file_name)
+		err := os.Remove(file_name)
+		if err != nil {
+			log.Error("Error in deleting file: ", file_name, err)
+			return err
+		}
+	}
+	return nil
+}

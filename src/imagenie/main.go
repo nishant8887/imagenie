@@ -133,27 +133,19 @@ func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request)
 
 	// Code to make entry in the image table and lauch it's processing task
 
-	deleteFile := func() {
-		log.Info("Deleting file: ", new_file_name)
-		err := os.Remove(new_file_name)
-		if err != nil {
-			log.Error("Error in removing file: ", new_file_name, err)
-		}
-	}
-
 	file_id_str := fmt.Sprintf("%s", file_id)
 	image := models.Image{FileId: file_id_str, Extension: extension}
 	err = self.db.Create(&image).Error
 	if err != nil {
-		defer deleteFile()
+		defer utils.DeleteFile(new_file_name)
 		http.Error(w, "Error in saving file. (cannot create db entry)", http.StatusInternalServerError)
 		return
 	}
 
-	data := ResizeImageArgs{ImageId: file_id_str, Path: new_file_name}
-	err = self.queHelper.DoResize(data)
+	data := ImageArgs{ImageId: file_id_str, Extension: extension, Path: new_file_name}
+	err = self.queHelper.DoProcess(data)
 	if err != nil {
-		defer deleteFile()
+		defer utils.DeleteFile(new_file_name)
 		http.Error(w, "Error in saving file. (cannot launch resize task)", http.StatusInternalServerError)
 		return
 	}
