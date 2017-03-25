@@ -68,7 +68,12 @@ type ImageArgs struct {
 }
 
 func (self *QueHelper) UploadImage(image_path string, folder string) error {
-	// Check for already uploaded image
+
+	exists := self.listener.awsHelper.CheckFile(image_path, folder)
+	if exists {
+		return nil
+	}
+
 	// Add some retries
 	err := self.listener.awsHelper.UploadFile(image_path, folder)
 	if err != nil {
@@ -119,7 +124,7 @@ func (self *QueHelper) ProcessImage(j *que.Job) error {
 	// Check for limited number of retries
 	if j.ErrorCount >= JOB_RETRIES {
 
-		// Add code to delete uploaded files if any
+		// Code to delete uploaded files if any
 		self.listener.awsHelper.DeleteFile(file_name, FOLDER_ORIGINAL)
 		self.listener.awsHelper.DeleteFile(resized_file_name, FOLDER_RESIZED)
 
@@ -186,7 +191,6 @@ func (self *QueHelper) DoProcess(data ImageArgs) error {
 		Args: args,
 	}
 
-	// Add more retries
 	if err := self.qc.Enqueue(j); err != nil {
 		return err
 	}

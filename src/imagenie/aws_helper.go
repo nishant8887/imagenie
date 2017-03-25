@@ -84,10 +84,28 @@ func (self *AwsHelper) DeleteFile(file_name, folder string) error {
 		Key:    aws.String(file_path),
 	}
 
+	// Add some more retries
 	_, err := self.svc.DeleteObject(params)
 	if err != nil {
 		log.Error("Error deleting file from S3: ", file_path)
 		return err
 	}
 	return nil
+}
+
+func (self *AwsHelper) CheckFile(file_name, folder string) bool {
+	file_path := path.Clean(folder + "/" + path.Base(file_name))
+
+	params := &s3.HeadObjectInput{
+		Bucket: aws.String(self.config.Bucket),
+		Key:    aws.String(file_path),
+	}
+
+	_, err := self.svc.HeadObject(params)
+	if err != nil {
+		return false
+	}
+
+	log.Info("File already exists on S3: ", file_path)
+	return true
 }
