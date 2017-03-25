@@ -35,8 +35,18 @@ type User struct {
 	LastName  string `gorm:"size:255"`
 	Email     string `gorm:"not null;unique_index;size:255"`
 	Password  string `gorm:"not null"`
+
+	Images []Image
+}
+
+type Image struct {
+	gorm.Model
+	UserID    uint
+	FileId    string `gorm:"not null;unique_index;size:40"`
+	Extension string `gorm:"not null;size:5;default:'.jpg'"`
+	Done      bool   `gorm:"not null;default:false`
 }
 
 func MigrateAll(db *gorm.DB) {
-	db.AutoMigrate(&QueJobs{})
+	db.AutoMigrate(&QueJobs{}, &User{}, &Image{})
 }

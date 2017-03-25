@@ -9,12 +9,12 @@ import (
 	"github.com/satori/go.uuid"
 	"gopkg.in/yaml.v2"
 	"imagenie/models"
-	"imagenie/quehelper"
 	"imagenie/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -26,11 +26,12 @@ type ServiceSettings struct {
 	DbSslMode  string
 	DbPassword string
 	Workers    int
+	TmpPath    string
 }
 
 type ImagenieListener struct {
 	db        *gorm.DB
-	queHelper quehelper.QueHelper
+	queHelper QueHelper
 	settings  ServiceSettings
 }
 
@@ -63,8 +64,8 @@ func (self *ImagenieListener) Start() error {
 
 	models.MigrateAll(self.db)
 
-	self.queHelper = quehelper.QueHelper{}
-	err = self.queHelper.Init(self.settings.DbHost, self.settings.DbUser, self.settings.DbName, self.settings.DbPassword, self.settings.Workers)
+	self.queHelper = QueHelper{}
+	err = self.queHelper.Init(self)
 	if err != nil {
 		return err
 	}
@@ -111,8 +112,10 @@ func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// More check on extension must be added
+
 	file_id := uuid.NewV4()
-	new_file_name := fmt.Sprintf("/tmp/%s-original%s", file_id, extension)
+	new_file_name := path.Clean(fmt.Sprintf("%s/%s-original%s", self.settings.TmpPath, file_id, extension))
 
 	out, err := os.Create(new_file_name)
 	if err != nil {
@@ -128,5 +131,6 @@ func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Code to make entry in the image table and lauch it's processing task must be added
 	w.WriteHeader(200)
 }
