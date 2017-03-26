@@ -21,6 +21,7 @@ $(document).ready(function() {
 
 		images: ko.observableArray([]),
 		page: ko.observable(1),
+		total_pages: ko.observable(2),
 
 		showSignIn: function () {
 			this.signInBox(true);
@@ -148,8 +149,21 @@ $(document).ready(function() {
 			return true;
 		},
 
+		nextPage: function() {
+			if (this.page() >= this.total_pages()) return;
+			this.page(this.page()+1);
+			this.fetchPage();
+		},
+
+		previousPage: function() {
+			if (this.page() <= 1) return;
+			this.page(this.page()-1);
+			this.fetchPage();
+		},
+
 		fetchPage: function() {
 			var page_no = this.page();
+			console.log("Fetching page: " + page_no);
 			var _this = this;
             $.ajax({
                 method: "GET",
