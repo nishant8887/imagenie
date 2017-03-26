@@ -181,14 +181,14 @@ func (self *ImagenieListener) UserLogout(w http.ResponseWriter, r *http.Request)
 
 func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request) {
 	// Only authenticated request hence not seperating it into different function for now
-	username, err := r.Cookie("user")
+	cookie, err := r.Cookie("user")
 	if err != nil {
 		http.Error(w, "Error no cookie found", http.StatusUnauthorized)
 		return
 	}
 
 	var user models.User
-	err = self.db.Table("users").Where("user_name = ?", username).First(&user).Error
+	err = self.db.Table("users").Where("user_name = ?", cookie.Value).First(&user).Error
 	if err != nil {
 		http.Error(w, "Error invalid user", http.StatusUnauthorized)
 		return
