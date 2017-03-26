@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -16,11 +17,13 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
 const (
 	COOKIE_EXPIRY_IN_MINUTES = 2
+	PAGE_SIZE                = 6
 )
 
 type ServiceSettings struct {
@@ -32,6 +35,7 @@ type ServiceSettings struct {
 	DbPassword string
 	Workers    int
 	TmpPath    string
+	S3BaseUrl  string
 	AwsConfig  AwsConfig
 }
 
@@ -93,6 +97,8 @@ func (self *ImagenieListener) Start() error {
 	r.HandleFunc("/user/login", self.UserLogin).Methods("POST")
 	r.HandleFunc("/user/logout", self.UserLogout).Methods("POST")
 
+	r.HandleFunc("/images/{id:[0-9]+}", self.GetImagesForPage).Methods("GET")
+
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", utils.NoDirFileServer("static")))
 
 	http.Handle("/", r)
@@ -145,7 +151,7 @@ func (self *ImagenieListener) UserCreate(w http.ResponseWriter, r *http.Request)
 	}
 
 	self.SetUserCookie(w, user, COOKIE_EXPIRY_IN_MINUTES)
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (self *ImagenieListener) UserLogin(w http.ResponseWriter, r *http.Request) {
@@ -170,13 +176,13 @@ func (self *ImagenieListener) UserLogin(w http.ResponseWriter, r *http.Request) 
 	}
 
 	self.SetUserCookie(w, user, COOKIE_EXPIRY_IN_MINUTES)
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (self *ImagenieListener) UserLogout(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	self.SetUserCookie(w, user, -1)
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request) {
@@ -248,5 +254,63 @@ func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
+}
+
+type ImagesResponse struct {
+	Page   uint32   `json:"page"`
+	Images []RImage `json:"images"`
+}
+
+type RImage struct {
+	Id          string `json:"id"`
+	Description string `json:"description"`
+	Original    string `json:"original"`
+	Resized     string `json:"resized"`
+}
+
+func (self *ImagenieListener) GetImagesForPage(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	page := vars["id"]
+
+	page_no, err := strconv.ParseUint(page, 10, 32)
+	if err != nil {
+		http.Error(w, "{}", http.StatusBadRequest)
+		return
+	}
+
+	if page_no <= 0 {
+		http.Error(w, "{}", http.StatusBadRequest)
+		return
+	}
+
+	var images []models.Image
+	offset := (page_no - 1) * PAGE_SIZE
+	err = self.db.Debug().Table("images").Offset(offset).Limit(PAGE_SIZE).Where("done = true").Find(&images).Error
+	if err != nil {
+		http.Error(w, "{}", http.StatusInternalServerError)
+		return
+	}
+
+	r_images := make([]RImage, 0)
+	for _, image := range images {
+		original_file_name := path.Clean(fmt.Sprintf("/original/%s-original%s", image.FileId, image.Extension))
+		resized_file_name := path.Clean(fmt.Sprintf("/resized/%s-resized%s", image.FileId, image.Extension))
+		r_image := RImage{
+			Id:          image.FileId,
+			Description: image.Description,
+			Original:    self.settings.S3BaseUrl + original_file_name,
+			Resized:     self.settings.S3BaseUrl + resized_file_name,
+		}
+		r_images = append(r_images, r_image)
+	}
+
+	images_response := ImagesResponse{Page: uint32(page_no), Images: r_images}
+	result, err := json.Marshal(images_response)
+	if err != nil {
+		http.Error(w, "{}", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(result)
 }

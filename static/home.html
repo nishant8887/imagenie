@@ -126,23 +126,11 @@
                     </form>
                 </div>
             </div>
-            <div data-bind="foreach: image_groups">
-                <div class="row">
-                    <div class="col-md-4" data-bind="if: a">
-                        <a class="thumbnail">
-                            <img data-bind="attr: {src: a.src}"/>
-                        </a>
-                    </div>
-                    <div class="col-md-4" data-bind="if: b">
-                        <a class="thumbnail">
-                            <img data-bind="attr: {src: b.src}"/>
-                        </a>
-                    </div>
-                    <div class="col-md-4" data-bind="if: c">
-                        <a class="thumbnail">
-                            <img data-bind="attr: {src: c.src}"/>
-                        </a>
-                    </div>
+            <div class="row" data-bind="foreach: images">
+                <div class="col-md-4">
+                    <a class="thumbnail">
+                        <img data-bind="attr: {src: $data.resized}"/>
+                    </a>
                 </div>
             </div>
             <div class="row footer">

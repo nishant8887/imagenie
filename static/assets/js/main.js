@@ -1,6 +1,6 @@
 $(document).ready(function() {
 	var MainView = {
-		loggedIn: ko.observable(true),
+		loggedIn: ko.observable(false),
 		signInBox: ko.observable(true),
 		uploadBox: ko.observable(false),
 
@@ -19,13 +19,8 @@ $(document).ready(function() {
 		uffile: ko.observable(''),
 		ufdescription: ko.observable(''),
 
-		image_groups: ko.observableArray([
-			{
-				a:  { src: "/static/assets/images/picture_1.jpg" },
-				b:  { src: "/static/assets/images/picture_2.jpg" },
-				c:  { src: "/static/assets/images/picture_3.jpg" }
-			}
-		]),
+		images: ko.observableArray([]),
+		page: ko.observable(1),
 
 		showSignIn: function () {
 			this.signInBox(true);
@@ -151,8 +146,29 @@ $(document).ready(function() {
 		doneUpload: function() {
 			this.uploadBox(false);
 			return true;
+		},
+
+		fetchPage: function() {
+			var page_no = this.page();
+			var _this = this;
+            $.ajax({
+                method: "GET",
+                url: "/images/" + page_no,
+                success: function(str) {
+					resp = JSON.parse(str);
+					_this.page(resp.page);
+					_this.images.removeAll();
+					for(var i in resp.images) {
+					var image = resp.images[i];
+					_this.images.push(image);
+					}
+                },
+                error: function(e) {
+                }
+            });
 		}
 	};
 
 	ko.applyBindings(MainView);
+	MainView.fetchPage();
 });
