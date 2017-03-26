@@ -41,10 +41,11 @@ type User struct {
 
 type Image struct {
 	gorm.Model
-	UserID    uint
-	FileId    string `gorm:"not null;unique_index;size:40"`
-	Extension string `gorm:"not null;size:5;default:'.jpg'"`
-	Done      bool   `gorm:"not null;default:false"`
+	UserID      uint
+	FileId      string `gorm:"not null;unique_index;size:40"`
+	Extension   string `gorm:"not null;size:5;default:'.jpg'"`
+	Description string `gorm:"not null;default:''"`
+	Done        bool   `gorm:"not null;default:false"`
 }
 
 func MigrateAll(db *gorm.DB) {

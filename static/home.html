@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <title>Imagenie</title>
+        <link href="/static/assets/css/bootstrap.min.css" rel="stylesheet">
+        <script src="/static/assets/js/jquery.min.js"></script>
+        <script src="/static/assets/js/bootstrap.min.js"></script>
+        <script src="/static/assets/js/knockout-3.4.2.js"></script>
+        <style>
+            .user-related {
+                background-color: #6f5499;
+                padding: 30px;
+                margin-top: 50px;
+                margin-bottom: 20px;
+            }
+            .footer {
+                height: 20px;
+            }
+            .title {
+                margin-top: 30px;
+                margin-bottom: 30px;
+            }
+            .text-white {
+                color: #ffffff;
+            }
+            #user-upload {
+                position: fixed;
+                border: 1px solid #aaaaaa;
+                border-radius: 4px;
+                top: 50px;
+                right: 0px;
+                opacity: 1.0;
+                padding: 20px;
+                background-color: #ffffff;
+                z-index: 100;
+            }
+        </style>
+        <script type="text/javascript" src="/static/assets/js/main.js"></script>
+    </head>
+    <body>
+        <div id="user-upload" data-bind="visible: loggedIn() && uploadBox()">
+            <form class="form-inline" action="/upload" method="post" enctype="multipart/form-data" target="upload_target" data-bind="submit: doneUpload">
+                <div class="form-group">
+                    <input type="file" name="image_file" id="file" data-bind="value: uffile">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="image_description" id="description" data-bind="value: ufdescription">
+                </div>
+                <div class="form-group">
+                    <input class="btn btn-default" type="submit" name="submit" value="Upload">
+                </div>
+            </form>
+        </div>
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                    <a class="navbar-brand" href="#">Imagenie</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li data-bind="visible: loggedIn()">
+                            <a href="#" data-bind="click: toggleUpload">Upload <span class="glyphicon glyphicon-upload"></span></a>
+                        </li>
+                        <li id="nb-sign-up" data-bind="visible: loggedIn()" ><a href="#" data-bind="click: logOut">Log Out</a></li>
+                        <li id="nb-sign-up" data-bind="visible: !loggedIn(), click: showSignUp, css: { 'active': !signInBox() }" ><a href="#">New User</a></li>
+                        <li id="nb-sign-in" data-bind="visible: !loggedIn(), click: showSignIn, css: { 'active': signInBox() }"><a href="#">Sign In</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container-fluid">
+            <div class="row user-related">
+                <div class="col-md-8">
+                    <div class="title">
+                        <h2 class="text-white">Imagenie, the photo gallery ...</h3>
+                        <h4 class="text-white" data-bind="visible: signInBox() && !loggedIn()">Join in with your account to upload photos here!</h4>
+                        <h4 class="text-white" data-bind="visible: !signInBox() && !loggedIn()">Create your account to upload photos here!</h4>
+                    </div>
+                </div>
+                <div class="col-md-4" id="user-sign-in" data-bind="visible: signInBox() && !loggedIn()">
+                    <form class="form">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="sign-in-username" placeholder="Username" data-bind="value: luUsername">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" id="sign-in-password" placeholder="Password" data-bind="value: luPassword">
+                        </div>
+                        <div class="form-group">
+                            <p class="help-block text-white" data-bind="text: luError"></p>
+                        </div>
+                        <button type="button" class="btn btn-default" id="sign-in" data-bind="click: doLogIn">Sign In</button>
+                    </form>
+                </div>
+                <div class="col-md-4" id="user-sign-up" data-bind="visible: !signInBox() && !loggedIn()">
+                    <form class="form">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="sign-up-username" placeholder="Username" data-bind="value: cuUsername">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="sign-up-firstname" placeholder="Firstname" data-bind="value: cuFirstname">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="sign-up-lastname" placeholder="Lastname" data-bind="value: cuLastname">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-control" id="sign-up-email" placeholder="Email" data-bind="value: cuEmail">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" id="sign-up-password" placeholder="Password" data-bind="value: cuPassword">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" id="sign-up-confirmpassword" placeholder="Confirm Password" data-bind="value: cuConfirmPassword">
+                        </div>
+                        <div class="form-group">
+                            <p class="help-block text-white" data-bind="text: cuError"></p>
+                        </div>
+                        <button type="button" class="btn btn-default" id="sign-up" data-bind="click: doCreateAccount">Sign Up</button>
+                    </form>
+                </div>
+            </div>
+            <div data-bind="foreach: image_groups">
+                <div class="row">
+                    <div class="col-md-4" data-bind="if: a">
+                        <a class="thumbnail">
+                            <img data-bind="attr: {src: a.src}"/>
+                        </a>
+                    </div>
+                    <div class="col-md-4" data-bind="if: b">
+                        <a class="thumbnail">
+                            <img data-bind="attr: {src: b.src}"/>
+                        </a>
+                    </div>
+                    <div class="col-md-4" data-bind="if: c">
+                        <a class="thumbnail">
+                            <img data-bind="attr: {src: c.src}"/>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="row footer">
+            </div>
+        </div>
+        <iframe id="upload_target" name="upload_target" height="0" width="0" frameborder="0" style="display:none"></iframe>
+    </body>
+</html>

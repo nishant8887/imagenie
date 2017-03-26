@@ -16,6 +16,11 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
+)
+
+const (
+	COOKIE_EXPIRY_IN_MINUTES = 2
 )
 
 type ServiceSettings struct {
@@ -81,8 +86,12 @@ func (self *ImagenieListener) Start() error {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/home", self.Home)
+	r.HandleFunc("/", self.UserHome)
 	r.HandleFunc("/upload", self.UploadFile).Methods("POST")
+
+	r.HandleFunc("/user/create", self.UserCreate).Methods("POST")
+	r.HandleFunc("/user/login", self.UserLogin).Methods("POST")
+	r.HandleFunc("/user/logout", self.UserLogout).Methods("POST")
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", utils.NoDirFileServer("static")))
 
@@ -99,12 +108,93 @@ func main() {
 	}
 }
 
-func (self *ImagenieListener) Home(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello world!")
+func (self *ImagenieListener) UserHome(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "static/home.html")
+}
+
+func (self *ImagenieListener) SetUserCookie(w http.ResponseWriter, user models.User, expiry int) {
+	expiration := time.Now().Add(time.Duration(expiry) * time.Minute)
+	cookie := http.Cookie{Name: "user", Value: user.UserName, Path: "/", Expires: expiration}
+	http.SetCookie(w, &cookie)
+}
+
+func (self *ImagenieListener) UserCreate(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	firstname := r.FormValue("firstname")
+	lastname := r.FormValue("lastname")
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	if username == "" || firstname == "" || lastname == "" || email == "" || password == "" {
+		http.Error(w, "{}", http.StatusBadRequest)
+		return
+	}
+
+	user := models.User{
+		UserName:  username,
+		FirstName: firstname,
+		LastName:  lastname,
+		Email:     email,
+		Password:  password,
+	}
+
+	err := self.db.Create(&user).Error
+	if err != nil {
+		http.Error(w, "{}", http.StatusInternalServerError)
+		return
+	}
+
+	self.SetUserCookie(w, user, COOKIE_EXPIRY_IN_MINUTES)
+	w.WriteHeader(200)
+}
+
+func (self *ImagenieListener) UserLogin(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	if username == "" || password == "" {
+		http.Error(w, "{}", http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+	err := self.db.Table("users").Where("user_name = ?", username).First(&user).Error
+	if err != nil {
+		http.Error(w, "{}", http.StatusBadRequest)
+		return
+	}
+
+	if user.Password != password {
+		http.Error(w, "{}", http.StatusBadRequest)
+		return
+	}
+
+	self.SetUserCookie(w, user, COOKIE_EXPIRY_IN_MINUTES)
+	w.WriteHeader(200)
+}
+
+func (self *ImagenieListener) UserLogout(w http.ResponseWriter, r *http.Request) {
+	user := models.User{}
+	self.SetUserCookie(w, user, -1)
+	w.WriteHeader(200)
 }
 
 func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request) {
+	// Only authenticated request hence not seperating it into different function for now
+	username, err := r.Cookie("user")
+	if err != nil {
+		http.Error(w, "Error no cookie found", http.StatusUnauthorized)
+		return
+	}
 
+	var user models.User
+	err = self.db.Table("users").Where("user_name = ?", username).First(&user).Error
+	if err != nil {
+		http.Error(w, "Error invalid user", http.StatusUnauthorized)
+		return
+	}
+
+	image_description := r.FormValue("image_description")
 	file, header, err := r.FormFile("image_file")
 
 	if err != nil {
@@ -142,7 +232,7 @@ func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request)
 	// Code to make entry in the image table and lauch it's processing task
 
 	file_id_str := fmt.Sprintf("%s", file_id)
-	image := models.Image{FileId: file_id_str, Extension: extension}
+	image := models.Image{FileId: file_id_str, Extension: extension, Description: image_description}
 	err = self.db.Create(&image).Error
 	if err != nil {
 		defer utils.DeleteFile(new_file_name)
