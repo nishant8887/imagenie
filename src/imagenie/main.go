@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	COOKIE_EXPIRY_IN_MINUTES = 2
+	COOKIE_EXPIRY_IN_MINUTES = 24 * 60
 	PAGE_SIZE                = 6
 )
 

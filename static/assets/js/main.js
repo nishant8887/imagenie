@@ -159,8 +159,8 @@ $(document).ready(function() {
 					_this.page(resp.page);
 					_this.images.removeAll();
 					for(var i in resp.images) {
-					var image = resp.images[i];
-					_this.images.push(image);
+						var image = resp.images[i];
+						_this.images.push(image);
 					}
                 },
                 error: function(e) {
@@ -170,5 +170,10 @@ $(document).ready(function() {
 	};
 
 	ko.applyBindings(MainView);
+
+	var username = $.cookie("user");
+	if (username != null && username != "") {
+		MainView.loggedIn(true);
+	}
 	MainView.fetchPage();
 });
