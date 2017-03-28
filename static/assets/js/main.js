@@ -21,7 +21,7 @@ $(document).ready(function() {
 
 		images: ko.observableArray([]),
 		page: ko.observable(1),
-		total_pages: ko.observable(2),
+		total_pages: ko.observable(1),
 
 		showSignIn: function () {
 			this.signInBox(true);
@@ -171,6 +171,13 @@ $(document).ready(function() {
                 success: function(str) {
 					resp = JSON.parse(str);
 					_this.page(resp.page);
+
+                    console.log(resp);
+
+                    if (_this.total_pages() != resp.total_pages) {
+                        _this.total_pages(resp.total_pages);
+                    }
+
 					_this.images.removeAll();
 					for(var i in resp.images) {
 						var image = resp.images[i];

@@ -13,6 +13,7 @@ import (
 	"imagenie/utils"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"path"
@@ -258,8 +259,9 @@ func (self *ImagenieListener) UploadFile(w http.ResponseWriter, r *http.Request)
 }
 
 type ImagesResponse struct {
-	Page   uint32   `json:"page"`
-	Images []RImage `json:"images"`
+	TotalPages uint32   `json:"total_pages"`
+	Page       uint32   `json:"page"`
+	Images     []RImage `json:"images"`
 }
 
 type RImage struct {
@@ -284,6 +286,13 @@ func (self *ImagenieListener) GetImagesForPage(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	var count uint32
+	err = self.db.Table("images").Where("done = true").Count(&count).Error
+	if err != nil {
+		http.Error(w, "{}", http.StatusInternalServerError)
+		return
+	}
+
 	var images []models.Image
 	offset := (page_no - 1) * PAGE_SIZE
 	err = self.db.Debug().Table("images").Offset(offset).Limit(PAGE_SIZE).Where("done = true").Find(&images).Error
@@ -305,7 +314,8 @@ func (self *ImagenieListener) GetImagesForPage(w http.ResponseWriter, r *http.Re
 		r_images = append(r_images, r_image)
 	}
 
-	images_response := ImagesResponse{Page: uint32(page_no), Images: r_images}
+	total_pages := uint32(math.Ceil(float64(count) / PAGE_SIZE))
+	images_response := ImagesResponse{TotalPages: total_pages, Page: uint32(page_no), Images: r_images}
 	result, err := json.Marshal(images_response)
 	if err != nil {
 		http.Error(w, "{}", http.StatusInternalServerError)
