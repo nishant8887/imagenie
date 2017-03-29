@@ -153,11 +153,11 @@ $(document).ready(function() {
                 if (iframeContents.indexOf("Error") !== -1 || iframeContents.indexOf("error") !== -1) {
                     // Success in upload
                     console.log("Upload complete");
-                    setTimeout(fetchPage, 2000);
                 } else {
                     // Error in upload
                     console.log("Upload error");
                 }
+                setTimeout(_this.fetchPage, 2000);
                 _this.uploading(false);
                 _this.uploadBox(false);
             });
