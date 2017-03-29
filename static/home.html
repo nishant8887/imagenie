@@ -130,8 +130,10 @@
             </div>
             <div class="row" data-bind="foreach: images">
                 <div class="col-md-4">
-                    <a class="thumbnail">
+                    <a class="thumbnail" target="_blank" data-bind="attr: {href: $data.original}">
                         <img data-bind="attr: {src: $data.resized}"/>
+                        <div class="caption" data-bind="text: $data.description">
+                        </div>
                     </a>
                 </div>
             </div>
