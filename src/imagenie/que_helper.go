@@ -100,20 +100,22 @@ func (self *QueHelper) ResizeImage(file_name, resized_file_name string) error {
 		log.Info("Height of the image: ", height)
 		log.Info("Aspect ratio of the image: ", float64(width)/float64(height))
 
-		r_width := float64(MAX_WIDTH) / float64(width)
-		r_height := float64(MAX_HEIGHT) / float64(height)
+		if width > MAX_WIDTH || height > MAX_HEIGHT {
+			r_width := float64(MAX_WIDTH) / float64(width)
+			r_height := float64(MAX_HEIGHT) / float64(height)
 
-		if r_width > r_height {
-			image = imaging.Resize(image, 0, MAX_HEIGHT, imaging.Lanczos)
-		} else {
-			image = imaging.Resize(image, MAX_WIDTH, 0, imaging.Lanczos)
+			if r_width > r_height {
+				image = imaging.Resize(image, 0, MAX_HEIGHT, imaging.Lanczos)
+			} else {
+				image = imaging.Resize(image, MAX_WIDTH, 0, imaging.Lanczos)
+			}
+
+			new_width := image.Bounds().Dx()
+			new_height := image.Bounds().Dy()
+			log.Info("Width of the new image: ", new_width)
+			log.Info("Height of the new image: ", new_height)
+			log.Info("Aspect ratio of the new image: ", float64(new_width)/float64(new_height))
 		}
-
-		new_width := image.Bounds().Dx()
-		new_height := image.Bounds().Dy()
-		log.Info("Width of the new image: ", new_width)
-		log.Info("Height of the new image: ", new_height)
-		log.Info("Aspect ratio of the new image: ", float64(new_width)/float64(new_height))
 
 		err = imaging.Save(image, resized_file_name)
 		if err != nil {
