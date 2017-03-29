@@ -61,6 +61,15 @@ func (self *ImagenieListener) Start() error {
 
 	self.settings = m
 
+	f, err := os.OpenFile("logs/imagenie.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	log.SetOutput(f)
+
 	self.db, err = gorm.Open("postgres", fmt.Sprintf("host=%s user=%s dbname=%s sslmode=%s password=%s",
 		self.settings.DbHost,
 		self.settings.DbUser,
