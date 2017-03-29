@@ -150,11 +150,12 @@ $(document).ready(function() {
             this.uploading(true);
             $("#upload_target").load(function () {
                 iframeContents = this.contentWindow.document.body.innerHTML;
-                console.log(iframeContents);
                 if (iframeContents.indexOf("Error") !== -1 || iframeContents.indexOf("error") !== -1) {
                     // Success in upload
+                    console.log("Upload complete");
                 } else {
                     // Error in upload
+                    console.log("Upload error");
                 }
                 _this.uploading(false);
                 _this.uploadBox(false);

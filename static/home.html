@@ -52,7 +52,7 @@
                     <input type="text" class="form-control" name="image_description" id="description" data-bind="value: ufdescription">
                 </div>
                 <div class="form-group">
-                    <input class="btn btn-default" type="submit" name="submit" value="Upload">
+                    <input class="btn btn-default" type="submit" name="submit" value="Upload" data-bind="css: { 'disabled': uploading() }">
                 </div>
             </form>
         </div>
