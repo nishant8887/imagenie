@@ -151,13 +151,15 @@ $(document).ready(function() {
             $("#upload_target").load(function () {
                 iframeContents = this.contentWindow.document.body.innerHTML;
                 if (iframeContents.indexOf("Error") !== -1 || iframeContents.indexOf("error") !== -1) {
-                    // Success in upload
-                    console.log("Upload complete");
-                } else {
                     // Error in upload
                     console.log("Upload error");
+                } else {
+                    // Success in upload
+                    console.log("Upload complete");
                 }
-                setTimeout(_this.fetchPage, 2000);
+                setTimeout(function() {
+                    MainView.fetchPage();
+                }, 5000);
                 _this.uploading(false);
                 _this.uploadBox(false);
             });
